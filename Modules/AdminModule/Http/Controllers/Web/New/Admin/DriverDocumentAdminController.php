@@ -60,8 +60,8 @@ class DriverDocumentAdminController extends Controller
             $label = str_replace('_', ' ', $doc->document_type);
             sendDeviceNotification(
                 fcm_token:       $doc->driver->fcm_token,
-                title:           translate('Document Approved'),
-                description:     translate("Your $label has been approved. You can now drive with WolyGo."),
+                title:           'Document Approved',
+                description:     "Your $label has been approved. You can now drive with WolyGo.",
                 status:          1,
                 ride_request_id: null,
                 action:          'document_approved',
@@ -92,8 +92,8 @@ class DriverDocumentAdminController extends Controller
             $label = str_replace('_', ' ', $doc->document_type);
             sendDeviceNotification(
                 fcm_token:       $doc->driver->fcm_token,
-                title:           translate('Document Rejected'),
-                description:     translate("Your $label was rejected: {$request->reason}. Please re-submit."),
+                title:           'Document Rejected',
+                description:     "Your $label was rejected: {$request->reason}. Please re-submit.",
                 status:          1,
                 ride_request_id: null,
                 action:          'document_rejected',
