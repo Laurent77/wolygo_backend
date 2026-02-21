@@ -183,8 +183,7 @@
                                                             %</h6>
                                                     </div>
                                                 </div>
-                                                <h6 class="fw-semibold fs-12" style="color: #FFA800">Today Idle Hour
-                                                    Rate</h6>
+                                                <h6 class="fw-semibold fs-12" style="color: #FFA800">{{ translate('today_idle_hour_rate') }}</h6>
                                             </div>
 
                                         </div>

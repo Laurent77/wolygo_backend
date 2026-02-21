@@ -2559,4 +2559,5 @@
   'country' => 'Pays',
   'male' => 'Homme',
   'female' => 'Femme',
+  'today_idle_hour_rate' => "Taux d'inactivité aujourd'hui",
 );

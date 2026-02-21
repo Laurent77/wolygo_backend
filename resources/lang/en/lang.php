@@ -2416,4 +2416,5 @@
   'country' => 'Country',
   'male' => 'Male',
   'female' => 'Female',
+  'today_idle_hour_rate' => 'Today Idle Hour Rate',
 );
