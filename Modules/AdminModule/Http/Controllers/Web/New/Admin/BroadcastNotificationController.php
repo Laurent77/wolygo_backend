@@ -7,6 +7,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Validator;
 use Modules\UserManagement\Entities\AdminBroadcastNotification;
 use Modules\UserManagement\Entities\User;
+
 class BroadcastNotificationController extends Controller
 {
     public function index()
@@ -26,21 +27,24 @@ class BroadcastNotificationController extends Controller
     public function send(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'title'       => 'required|max:200',
-            'message'     => 'required',
-            'target_type' => 'required|in:all_customers,all_drivers,all_users,specific_user',
-            'target_user_id' => 'required_if:target_type,specific_user|uuid|nullable',
-            'image'       => 'nullable|image|mimes:jpeg,jpg,png|max:5000',
+            'title'          => 'required|max:200',
+            'message'        => 'required',
+            'target_type'    => 'required|in:all_customers,all_drivers,all_users,specific_user',
+            'target_user_id' => 'required_if:target_type,specific_user|nullable|uuid',
+            'image'          => 'nullable|image|mimes:jpeg,jpg,png|max:5000',
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
 
-        // Image upload
-        $imagePath = null;
+        // Store image in push-notification folder (matches sendDeviceNotification helper path)
+        $imageFilename = null;
+        $imagePath     = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('notifications', 'public');
+            $stored        = $request->file('image')->store('push-notification', 'public');
+            $imageFilename = basename($stored); // just the filename for the helper
+            $imagePath     = $stored;           // relative path for DB
         }
 
         // Resolve recipients
@@ -54,10 +58,10 @@ class BroadcastNotificationController extends Controller
         }
         // all_users = no extra filter
 
-        $users      = $query->whereNotNull('fcm_token')->get();
-        $total      = $users->count();
+        $users        = $query->whereNotNull('fcm_token')->get();
+        $total        = $users->count();
         $successCount = 0;
-        $failCount  = 0;
+        $failCount    = 0;
 
         foreach ($users as $user) {
             try {
@@ -66,10 +70,10 @@ class BroadcastNotificationController extends Controller
                     title:           $request->title,
                     description:     $request->message,
                     status:          1,
+                    image:           $imageFilename,
                     ride_request_id: null,
                     action:          'admin_broadcast',
                     user_id:         $user->id,
-                    image:           $imagePath ? asset('storage/' . $imagePath) : null,
                 );
                 $successCount++;
             } catch (\Exception $e) {
@@ -82,7 +86,7 @@ class BroadcastNotificationController extends Controller
             'message'          => $request->message,
             'image_path'       => $imagePath,
             'target_type'      => $request->target_type,
-            'target_user_id'   => $request->target_user_id,
+            'target_user_id'   => $request->target_user_id ?? null,
             'channels'         => ['push'],
             'status'           => 'sent',
             'sent_at'          => now(),
@@ -93,7 +97,7 @@ class BroadcastNotificationController extends Controller
         ]);
 
         return redirect()->route('admin.broadcast-notification.index')
-            ->with('success', translate("Notification sent to $successCount recipients."));
+            ->with('success', translate('Notification sent to') . ' ' . $successCount . ' ' . translate('recipients'));
     }
 
     public function userSearch(Request $request)
@@ -101,8 +105,8 @@ class BroadcastNotificationController extends Controller
         $users = User::where('user_type', '!=', 'super-admin')
             ->where(function ($q) use ($request) {
                 $q->where('first_name', 'like', '%' . $request->q . '%')
-                  ->orWhere('last_name', 'like', '%' . $request->q . '%')
-                  ->orWhere('phone', 'like', '%' . $request->q . '%');
+                  ->orWhere('last_name',  'like', '%' . $request->q . '%')
+                  ->orWhere('phone',      'like', '%' . $request->q . '%');
             })
             ->select('id', 'first_name', 'last_name', 'phone', 'user_type')
             ->limit(10)
