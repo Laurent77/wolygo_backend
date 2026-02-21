@@ -86,14 +86,19 @@ class DriverDocumentController extends Controller
         $driverId  = auth('api')->id();
         $documents = DriverDocument::where('driver_id', $driverId)->get();
 
-        $mandatoryTypes = ['driving_license'];  // extend as needed from admin config
-        $allApproved    = true;
         $pendingDocs    = [];
+        $mandatoryDocs  = $documents->where('is_mandatory', true);
 
-        foreach ($documents as $doc) {
-            if ($doc->is_mandatory && $doc->status !== 'approved') {
-                $allApproved = false;
-                $pendingDocs[] = $this->transform($doc);
+        // Not approved if: no documents at all, or no mandatory docs, or any mandatory doc is not approved
+        if ($documents->isEmpty() || $mandatoryDocs->isEmpty()) {
+            $allApproved = false;
+        } else {
+            $allApproved = true;
+            foreach ($mandatoryDocs as $doc) {
+                if ($doc->status !== 'approved') {
+                    $allApproved   = false;
+                    $pendingDocs[] = $this->transform($doc);
+                }
             }
         }
 
