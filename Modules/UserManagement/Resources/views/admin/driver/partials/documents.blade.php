@@ -123,8 +123,8 @@
                                                     {{ $doc->created_at?->format('d/m/Y H:i') ?? '—' }}
                                                 </td>
                                                 <td class="text-nowrap">
-                                                    {{-- Approuver : visible si pas encore approuvé --}}
-                                                    @if($doc->status !== 'approved')
+                                                    {{-- Approuver : visible si pas rejeté ni déjà approuvé --}}
+                                                    @if($doc->status !== 'approved' && $doc->status !== 'rejected')
                                                         <form action="{{ route('admin.driver-documents.approve', $doc->id) }}"
                                                               method="POST" class="d-inline">
                                                             @csrf
@@ -134,7 +134,7 @@
                                                             </button>
                                                         </form>
                                                     @endif
-                                                    {{-- Rejeter : visible uniquement si approuvé ou en attente (pas si déjà rejeté) --}}
+                                                    {{-- Rejeter : visible si pas déjà rejeté (pending + approved) --}}
                                                     @if($doc->status !== 'rejected')
                                                         <button type="button"
                                                                 class="btn btn-sm btn-danger mb-1"
@@ -143,6 +143,7 @@
                                                             <i class="bi bi-x-circle"></i> {{ translate('reject') }}
                                                         </button>
                                                     @endif
+                                                    {{-- Rejeté : aucun bouton --}}
                                                 </td>
                                             </tr>
                                         @endforeach
