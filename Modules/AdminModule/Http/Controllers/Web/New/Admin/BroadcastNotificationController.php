@@ -7,8 +7,6 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Validator;
 use Modules\UserManagement\Entities\AdminBroadcastNotification;
 use Modules\UserManagement\Entities\User;
-use Ramsey\Uuid\Uuid;
-
 class BroadcastNotificationController extends Controller
 {
     public function index()
@@ -17,12 +15,12 @@ class BroadcastNotificationController extends Controller
             ->latest()
             ->paginate(15);
 
-        return view('adminmodule::admin.broadcast-notification.index', compact('notifications'));
+        return view('adminmodule::broadcast-notification.index', compact('notifications'));
     }
 
     public function create()
     {
-        return view('adminmodule::admin.broadcast-notification.create');
+        return view('adminmodule::broadcast-notification.create');
     }
 
     public function send(Request $request)
@@ -80,7 +78,6 @@ class BroadcastNotificationController extends Controller
         }
 
         AdminBroadcastNotification::create([
-            'id'               => Uuid::uuid4()->toString(),
             'title'            => $request->title,
             'message'          => $request->message,
             'image_path'       => $imagePath,
