@@ -2351,6 +2351,14 @@
   'History' => 'History',
   'Sent By' => 'Sent By',
   'No notifications sent yet.' => 'No notifications sent yet.',
+  'Target' => 'Target',
+  'Recipients' => 'Recipients',
+  'Success' => 'Success',
+  'Date' => 'Date',
+  'Title' => 'Title',
+  'Message' => 'Message',
+  'Notification sent to' => 'Notification sent to',
+  'recipients' => 'recipients',
 
   // --- Driver Documents ---
   'driver_document_validation' => 'Document Validation',

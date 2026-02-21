@@ -2494,6 +2494,14 @@
   'History' => 'Historique',
   'Sent By' => 'Envoyé par',
   'No notifications sent yet.' => 'Aucune notification envoyée pour l\'instant.',
+  'Target' => 'Cible',
+  'Recipients' => 'Destinataires',
+  'Success' => 'Réussi',
+  'Date' => 'Date',
+  'Title' => 'Titre',
+  'Message' => 'Message',
+  'Notification sent to' => 'Notification envoyée à',
+  'recipients' => 'destinataires',
 
   // --- Documents chauffeur ---
   'driver_document_validation' => 'Validation des documents',
