@@ -15,7 +15,7 @@ class CreateAdminBroadcastNotificationsTable extends Migration
             $table->string('image_path', 500)->nullable();
             $table->enum('target_type', ['all_customers', 'all_drivers', 'all_users', 'specific_user']);
             $table->uuid('target_user_id')->nullable(); // for specific_user
-            $table->json('channels')->default('["push"]'); // ['push', 'in_app']
+            $table->json('channels')->nullable(); // ['push', 'in_app'] — default handled in model/controller
             $table->enum('status', ['sent', 'failed'])->default('sent');
             $table->timestamp('sent_at')->nullable();
             $table->uuid('sent_by')->nullable();  // admin user id
