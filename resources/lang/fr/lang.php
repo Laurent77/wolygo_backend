@@ -2478,6 +2478,23 @@
   'The discount percent value must be gather than 0 ' => 'The discount percent value must be gather than 0 ',
   'Click' => 'Click',
 
+  // --- Notifications ---
+  'push_notifications' => 'Notifications push',
+  'Send New Notification' => 'Envoyer une notification',
+  'Notification History' => 'Historique des notifications',
+  'Send Notification' => 'Envoyer une notification',
+  'All Clients' => 'Tous les clients',
+  'All Drivers' => 'Tous les chauffeurs',
+  'Everyone' => 'Tout le monde',
+  'Specific User' => 'Utilisateur spécifique',
+  'Search User' => 'Rechercher un utilisateur',
+  'Name or phone...' => 'Nom ou téléphone...',
+  'Image (optional)' => 'Image (optionnel)',
+  'Send Now' => 'Envoyer maintenant',
+  'History' => 'Historique',
+  'Sent By' => 'Envoyé par',
+  'No notifications sent yet.' => 'Aucune notification envoyée pour l\'instant.',
+
   // --- Documents chauffeur ---
   'driver_document_validation' => 'Validation des documents',
   'driver_document_validation_list' => 'Liste de validation des documents chauffeur',

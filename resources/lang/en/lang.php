@@ -2335,6 +2335,23 @@
   'You have insufficient loyalty points' => 'You have insufficient loyalty points',
   'The profile image must be a file of type: jpeg  jpg  png  gif.' => 'The profile image must be a file of type: jpeg  jpg  png  gif.',
 
+  // --- Notifications ---
+  'push_notifications' => 'Push Notifications',
+  'Send New Notification' => 'Send New Notification',
+  'Notification History' => 'Notification History',
+  'Send Notification' => 'Send Notification',
+  'All Clients' => 'All Clients',
+  'All Drivers' => 'All Drivers',
+  'Everyone' => 'Everyone',
+  'Specific User' => 'Specific User',
+  'Search User' => 'Search User',
+  'Name or phone...' => 'Name or phone...',
+  'Image (optional)' => 'Image (optional)',
+  'Send Now' => 'Send Now',
+  'History' => 'History',
+  'Sent By' => 'Sent By',
+  'No notifications sent yet.' => 'No notifications sent yet.',
+
   // --- Driver Documents ---
   'driver_document_validation' => 'Document Validation',
   'driver_document_validation_list' => 'Driver Document Validation List',

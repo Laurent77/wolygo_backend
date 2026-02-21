@@ -530,6 +530,12 @@
                             <span class="link-title">{{ translate('chatting') }}</span>
                         </a>
                     </li>
+                    <li class="{{Request::is('admin/broadcast-notification*') ? 'active open' : ''}}">
+                        <a href="{{route('admin.broadcast-notification.index')}}">
+                            <i class="bi bi-bell-fill"></i>
+                            <span class="link-title text-capitalize">{{ translate('push_notifications') }}</span>
+                        </a>
+                    </li>
                     <!---------- End Help and Support Management --------------->
 
                 <li class="nav-category" title="Business Management">{{translate('business_management')}}</li>
