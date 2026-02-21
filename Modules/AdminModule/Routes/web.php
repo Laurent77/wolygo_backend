@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\AdminModule\Http\Controllers\Web\New\Admin\ActivityLogController;
+use Modules\AdminModule\Http\Controllers\Web\New\Admin\BroadcastNotificationController;
 use Modules\AdminModule\Http\Controllers\Web\New\Admin\DashboardController;
 use Modules\AdminModule\Http\Controllers\Web\New\Admin\ReportController;
 use Modules\AdminModule\Http\Controllers\Web\New\Admin\SettingController;
@@ -49,6 +50,18 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'admin'], f
     Route::controller(SharedController::class)->group(function () {
         Route::get('seen-notification', 'seenNotification')->name('seen-notification');
         Route::get('get-notifications', 'getNotifications')->name('get-notifications');
+    });
+    Route::controller(BroadcastNotificationController::class)->prefix('broadcast-notification')->as('broadcast-notification.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::post('send', 'send')->name('send');
+        Route::get('user-search', 'userSearch')->name('user-search');
+    });
+    Route::controller(\Modules\AdminModule\Http\Controllers\Web\New\Admin\DriverDocumentAdminController::class)->prefix('driver-documents')->as('driver-documents.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('{driverId}', 'show')->name('show');
+        Route::post('{docId}/approve', 'approve')->name('approve');
+        Route::post('{docId}/reject', 'reject')->name('reject');
     });
 });
 Route::controller(SharedController::class)->group(function () {

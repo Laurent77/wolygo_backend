@@ -338,6 +338,15 @@ class TripRequestController extends Controller
 
             return response()->json(responseFormatter(OTP_MISMATCH_404), 403);
         }
+
+        // Block trip start until customer has paid upfront
+        if ($trip->payment_status !== PAID) {
+            return response()->json(responseFormatter(constant: [
+                'response_code' => 'payment_required_402',
+                'message'       => translate('Customer payment not confirmed yet. Please wait.'),
+            ]), 402);
+        }
+
         DB::beginTransaction();
         $attributes = [
             'current_status' => ONGOING,

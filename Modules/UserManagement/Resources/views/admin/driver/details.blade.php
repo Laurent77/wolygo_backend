@@ -315,6 +315,11 @@
                             class="nav-link {{ $commonData['tab'] == 'review' ? 'active' : '' }}"
                             tabindex="-1">{{ translate('review') }}</a>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <a href="{{ route('admin.driver.show', ['id' => $commonData['driver']->id, 'tab' => 'documents']) }}"
+                            class="nav-link {{ $commonData['tab'] == 'documents' ? 'active' : '' }}"
+                            tabindex="-1">{{ translate('documents') }}</a>
+                    </li>
                 </ul>
             </div>
 
@@ -345,6 +350,12 @@
                 @endif
                 @if ($commonData['tab'] == 'review')
                     @include('usermanagement::admin.driver.partials.review', [
+                        'commonData' => $commonData,
+                        'otherData' => $otherData,
+                    ])
+                @endif
+                @if ($commonData['tab'] == 'documents')
+                    @include('usermanagement::admin.driver.partials.documents', [
                         'commonData' => $commonData,
                         'otherData' => $otherData,
                     ])

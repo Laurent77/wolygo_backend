@@ -2,6 +2,7 @@
 
 namespace Modules\TripManagement\Http\Controllers\Api\New;
 
+use App\Events\CustomerPaymentConfirmedEvent;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -79,6 +80,9 @@ class PaymentController extends Controller
 
         $this->amountChecker($trip->customer, $trip->paid_fare);
         DB::commit();
+
+        // Broadcast to driver app so it can unlock the "Start" button
+        broadcast(new CustomerPaymentConfirmedEvent($trip))->toOthers();
 
         $push = getNotification('payment_successful');
         sendDeviceNotification(

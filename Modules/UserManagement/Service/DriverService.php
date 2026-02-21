@@ -305,6 +305,11 @@ class DriverService extends BaseService implements Interface\DriverServiceInterf
                 'total_review_count' => $reviewData['totalReviewCount'],
                 'reviewed_by' => $reviewedBy
             ];
+        } else if ($tab == 'documents') {
+            $documents = \Modules\UserManagement\Entities\DriverDocument::where('driver_id', $id)->get();
+            $otherData = [
+                'documents' => $documents,
+            ];
         }
         return [
             'driver' => $driver,

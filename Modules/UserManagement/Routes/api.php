@@ -111,6 +111,14 @@ Route::group(['prefix' => 'driver'], function () {
                 Route::post('delete/{id}', 'destroy');
             });
         });
+
+        Route::group(['prefix' => 'documents'], function () {
+            Route::controller(\Modules\UserManagement\Http\Controllers\Api\Driver\DriverDocumentController::class)->group(function () {
+                Route::get('list', 'index');
+                Route::post('upload', 'upload');
+                Route::get('approval-status', 'approvalStatus');
+            });
+        });
     });
 
 });

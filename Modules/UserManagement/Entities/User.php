@@ -27,6 +27,9 @@ class User extends Authenticatable
         'full_name',
         'first_name',
         'last_name',
+        'sex',
+        'date_of_birth',
+        'country',
         'email',
         'phone',
         'identification_number',
@@ -211,6 +214,21 @@ class User extends Authenticatable
     public function driverDetails()
     {
         return $this->hasOne(DriverDetail::class, 'user_id');
+    }
+
+    public function driverDocuments()
+    {
+        return $this->hasMany(\Modules\UserManagement\Entities\DriverDocument::class, 'driver_id');
+    }
+
+    /**
+     * Returns true if all mandatory documents are approved.
+     */
+    public function hasAllDocumentsApproved(): bool
+    {
+        $mandatory = $this->driverDocuments()->where('is_mandatory', true)->get();
+        if ($mandatory->isEmpty()) return false;
+        return $mandatory->every(fn($d) => $d->status === 'approved');
     }
 
     public function timeLog()

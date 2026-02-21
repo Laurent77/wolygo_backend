@@ -75,17 +75,23 @@ class AuthController extends Controller
     public function register(Request $request): JsonResponse
     {
         $driverRoute = str_contains($request->route()->getPrefix(), 'driver');
+        $userTypeForRoute = $driverRoute ? DRIVER : CUSTOMER;
         $validator = Validator::make($request->all(), [
             'first_name' => 'required',
             'last_name' => 'required',
             'email' => 'email|unique:users',
-            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:8|max:17|unique:users',
+            'phone' => ['required', 'regex:/^([0-9\s\-\+\(\)]*)$/', 'min:8', 'max:17',
+                Rule::unique('users')->where(fn($q) => $q->where('user_type', $userTypeForRoute))
+            ],
             'password' => 'required|min:8',
             'profile_image' => 'image|mimes:jpeg,jpg,png,gif|max:10000',
             'identification_type' => 'in:nid,passport,driving_license',
             'identification_number' => 'sometimes',
             'identity_images' => 'sometimes|array',
             'identity_images.*' => 'image|mimes:jpeg,jpg,png,gif|max:10000',
+            'sex' => 'sometimes|in:male,female,other',
+            'date_of_birth' => 'sometimes|date',
+            'country' => 'sometimes|string|max:100',
             'fcm_token' => 'sometimes',
             'referral_code' => 'sometimes',
             'service' => [
@@ -679,7 +685,9 @@ class AuthController extends Controller
             'first_name' => 'required',
             'last_name' => 'required',
             'email' => 'email|unique:users',
-            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:8|max:17|unique:users',
+            'phone' => ['required', 'regex:/^([0-9\s\-\+\(\)]*)$/', 'min:8', 'max:17',
+                Rule::unique('users')->where(fn($q) => $q->where('user_type', CUSTOMER))
+            ],
             'password' => 'required|min:8',
         ]);
         if ($validator->fails()) {
