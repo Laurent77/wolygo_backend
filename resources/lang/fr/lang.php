@@ -2531,6 +2531,8 @@
   'enter_rejection_reason' => 'Saisissez le motif de rejet...',
   'approve_document_confirm' => 'Êtes-vous sûr de vouloir approuver ce document ?',
   'no_documents_submitted' => 'Aucun document n\'a encore été soumis.',
+  'submissions' => 'soumissions',
+  'submitted_at' => 'Soumis le',
   'doc_status_pending' => 'En attente',
   'doc_status_approved' => 'Approuvé',
   'doc_status_rejected' => 'Rejeté',

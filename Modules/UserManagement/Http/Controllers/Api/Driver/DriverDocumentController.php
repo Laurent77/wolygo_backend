@@ -7,16 +7,16 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Validator;
 use Modules\UserManagement\Entities\DriverDocument;
-use Ramsey\Uuid\Uuid;
 
 class DriverDocumentController extends Controller
 {
     /**
-     * List all documents for the authenticated driver.
+     * List all documents for the authenticated driver, grouped by type.
      */
     public function index(): JsonResponse
     {
         $documents = DriverDocument::where('driver_id', auth('api')->id())
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn($d) => $this->transform($d));
 
@@ -24,7 +24,7 @@ class DriverDocumentController extends Controller
     }
 
     /**
-     * Upload or re-submit a document.
+     * Upload a new document (always creates a new record — multiple per type allowed).
      */
     public function upload(Request $request): JsonResponse
     {
@@ -42,61 +42,73 @@ class DriverDocumentController extends Controller
             return response()->json(responseFormatter(DEFAULT_400, errors: errorProcessor($validator)), 400);
         }
 
-        $driverId = auth('api')->id();
-
-        $doc = DriverDocument::firstOrNew([
-            'driver_id'     => $driverId,
-            'document_type' => $request->document_type,
-        ]);
-
-        if (!$doc->id) {
-            $doc->id = Uuid::uuid4()->toString();
+        if (!$request->hasFile('front_image') && !$request->hasFile('pdf_file')) {
+            return response()->json(responseFormatter(DEFAULT_400, errors: [
+                ['message' => 'Veuillez fournir au moins le recto ou un PDF.']
+            ]), 400);
         }
 
-        $doc->document_number = $request->document_number;
-        $doc->issued_at       = $request->issued_at;
-        $doc->expires_at      = $request->expires_at;
-        $doc->status          = 'pending'; // reset to pending on re-submission
-        $doc->rejection_reason = null;
+        $driverId = auth('api')->id();
+
+        $data = [
+            'driver_id'       => $driverId,
+            'document_type'   => $request->document_type,
+            'document_number' => $request->document_number,
+            'issued_at'       => $request->issued_at,
+            'expires_at'      => $request->expires_at,
+            'status'          => 'pending',
+            'is_mandatory'    => true,
+        ];
 
         if ($request->hasFile('front_image')) {
-            $doc->front_image_path = $request->file('front_image')
+            $data['front_image_path'] = $request->file('front_image')
                 ->store("driver-documents/$driverId/front", 'public');
         }
         if ($request->hasFile('back_image')) {
-            $doc->back_image_path = $request->file('back_image')
+            $data['back_image_path'] = $request->file('back_image')
                 ->store("driver-documents/$driverId/back", 'public');
         }
         if ($request->hasFile('pdf_file')) {
-            $doc->pdf_path = $request->file('pdf_file')
+            $data['pdf_path'] = $request->file('pdf_file')
                 ->store("driver-documents/$driverId/pdf", 'public');
         }
 
-        $doc->save();
+        $doc = DriverDocument::create($data);
 
         return response()->json(responseFormatter(DEFAULT_STORE_200, $this->transform($doc)));
     }
 
     /**
-     * Check if the driver account is fully approved (all mandatory docs approved).
-     * Used by the app on login to decide whether to show the blocking screen.
+     * Approval status:
+     * Approved = at least one document submitted AND for each mandatory type submitted,
+     * at least one document of that type has status 'approved'.
      */
     public function approvalStatus(): JsonResponse
     {
         $driverId  = auth('api')->id();
         $documents = DriverDocument::where('driver_id', $driverId)->get();
 
-        $pendingDocs    = [];
-        $mandatoryDocs  = $documents->where('is_mandatory', true);
+        // Aucun document soumis → pas approuvé
+        if ($documents->isEmpty()) {
+            return response()->json(responseFormatter(DEFAULT_200, [
+                'is_approved'  => false,
+                'documents'    => [],
+                'pending_docs' => [],
+            ]));
+        }
 
-        // Not approved if: no documents at all, or no mandatory docs, or any mandatory doc is not approved
-        if ($documents->isEmpty() || $mandatoryDocs->isEmpty()) {
-            $allApproved = false;
-        } else {
-            $allApproved = true;
-            foreach ($mandatoryDocs as $doc) {
-                if ($doc->status !== 'approved') {
-                    $allApproved   = false;
+        // Pour chaque type soumis : au moins 1 doc doit être approuvé
+        $submittedTypes = $documents->pluck('document_type')->unique();
+        $allApproved    = true;
+        $pendingDocs    = [];
+
+        foreach ($submittedTypes as $type) {
+            $typeDocs    = $documents->where('document_type', $type);
+            $hasApproved = $typeDocs->where('status', 'approved')->isNotEmpty();
+
+            if (!$hasApproved) {
+                $allApproved = false;
+                foreach ($typeDocs as $doc) {
                     $pendingDocs[] = $this->transform($doc);
                 }
             }
@@ -104,7 +116,7 @@ class DriverDocumentController extends Controller
 
         return response()->json(responseFormatter(DEFAULT_200, [
             'is_approved'  => $allApproved,
-            'documents'    => $documents->map(fn($d) => $this->transform($d)),
+            'documents'    => $documents->map(fn($d) => $this->transform($d))->values(),
             'pending_docs' => $pendingDocs,
         ]));
     }
@@ -112,17 +124,20 @@ class DriverDocumentController extends Controller
     private function transform(DriverDocument $doc): array
     {
         return [
-            'id'              => $doc->id,
-            'document_type'   => $doc->document_type,
-            'document_number' => $doc->document_number,
-            'issued_at'       => $doc->issued_at?->format('Y-m-d'),
-            'expires_at'      => $doc->expires_at?->format('Y-m-d'),
-            'front_image_url' => $doc->front_image_path ? asset('storage/' . $doc->front_image_path) : null,
-            'back_image_url'  => $doc->back_image_path  ? asset('storage/' . $doc->back_image_path)  : null,
-            'pdf_url'         => $doc->pdf_path          ? asset('storage/' . $doc->pdf_path)          : null,
-            'status'          => $doc->status,
-            'rejection_reason'=> $doc->rejection_reason,
-            'days_until_expiry' => $doc->daysUntilExpiry(),
+            'id'               => $doc->id,
+            'document_type'    => $doc->document_type,
+            'document_number'  => $doc->document_number,
+            'issued_at'        => $doc->issued_at?->format('Y-m-d'),
+            'expires_at'       => $doc->expires_at?->format('Y-m-d'),
+            'front_image_url'  => $doc->front_image_path
+                ? asset('storage/' . $doc->front_image_path) : null,
+            'back_image_url'   => $doc->back_image_path
+                ? asset('storage/' . $doc->back_image_path)  : null,
+            'pdf_url'          => $doc->pdf_path
+                ? asset('storage/' . $doc->pdf_path)          : null,
+            'status'           => $doc->status,
+            'rejection_reason' => $doc->rejection_reason,
+            'days_until_expiry'=> $doc->daysUntilExpiry(),
         ];
     }
 }

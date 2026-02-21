@@ -2388,6 +2388,8 @@
   'enter_rejection_reason' => 'Enter rejection reason...',
   'approve_document_confirm' => 'Are you sure you want to approve this document?',
   'no_documents_submitted' => 'No documents have been submitted yet.',
+  'submissions' => 'submissions',
+  'submitted_at' => 'Submitted at',
   'doc_status_pending' => 'Pending',
   'doc_status_approved' => 'Approved',
   'doc_status_rejected' => 'Rejected',

@@ -104,21 +104,38 @@
                                                 $approved = $docs->where('status', 'approved')->count();
                                                 $expired  = $docs->whereIn('status', ['expired', 'expiring_soon'])->count();
 
+                                                // Statut global : tous les types SOUMIS doivent avoir au moins 1 doc approuvé
                                                 if ($total == 0) {
                                                     $globalClass = 'bg-secondary';
                                                     $globalLabel = translate('no_documents_submitted');
-                                                } elseif ($rejected > 0) {
-                                                    $globalClass = 'bg-danger';
-                                                    $globalLabel = translate('doc_status_rejected');
-                                                } elseif ($pending > 0) {
-                                                    $globalClass = 'bg-warning text-dark';
-                                                    $globalLabel = translate('doc_status_pending');
-                                                } elseif ($expired > 0) {
-                                                    $globalClass = 'bg-warning text-dark';
-                                                    $globalLabel = translate('doc_status_expiring_soon');
                                                 } else {
-                                                    $globalClass = 'bg-success';
-                                                    $globalLabel = translate('doc_status_approved');
+                                                    $submittedTypes  = $docs->pluck('document_type')->unique();
+                                                    $allTypesOk      = true;
+                                                    $anyTypeRejected = false;
+
+                                                    foreach ($submittedTypes as $t) {
+                                                        $typeDocs = $docs->where('document_type', $t);
+                                                        if ($typeDocs->where('status', 'approved')->isEmpty()) {
+                                                            $allTypesOk = false;
+                                                            if ($typeDocs->where('status', 'rejected')->isNotEmpty()) {
+                                                                $anyTypeRejected = true;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if ($allTypesOk) {
+                                                        $globalClass = 'bg-success';
+                                                        $globalLabel = translate('doc_status_approved');
+                                                    } elseif ($anyTypeRejected) {
+                                                        $globalClass = 'bg-danger';
+                                                        $globalLabel = translate('doc_status_rejected');
+                                                    } elseif ($expired > 0) {
+                                                        $globalClass = 'bg-warning text-dark';
+                                                        $globalLabel = translate('doc_status_expiring_soon');
+                                                    } else {
+                                                        $globalClass = 'bg-warning text-dark';
+                                                        $globalLabel = translate('doc_status_pending');
+                                                    }
                                                 }
                                             @endphp
                                             <tr>
