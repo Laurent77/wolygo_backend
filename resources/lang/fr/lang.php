@@ -2479,6 +2479,11 @@
   'Click' => 'Click',
 
   // --- Documents chauffeur ---
+  'driver_document_validation' => 'Validation des documents',
+  'driver_document_validation_list' => 'Liste de validation des documents chauffeur',
+  'total_docs' => 'Total docs',
+  'global_status' => 'Statut global',
+  'view_documents' => 'Voir les documents',
   'documents' => 'Documents',
   'driver_documents' => 'Documents du chauffeur',
   'document_type' => 'Type de document',

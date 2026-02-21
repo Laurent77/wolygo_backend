@@ -70,6 +70,24 @@
                                                     @endif
                                                 </span>
                                             </div>
+                                            @if($commonData['driver']->sex)
+                                            <div>
+                                                <span class="fw-bold">{{ translate('sex') }}: </span>
+                                                <span class="text-capitalize">{{ translate($commonData['driver']->sex) }}</span>
+                                            </div>
+                                            @endif
+                                            @if($commonData['driver']->date_of_birth)
+                                            <div>
+                                                <span class="fw-bold">{{ translate('date_of_birth') }}: </span>
+                                                <span>{{ \Carbon\Carbon::parse($commonData['driver']->date_of_birth)->format('d/m/Y') }}</span>
+                                            </div>
+                                            @endif
+                                            @if($commonData['driver']->country)
+                                            <div>
+                                                <span class="fw-bold">{{ translate('country') }}: </span>
+                                                <span>{{ $commonData['driver']->country }}</span>
+                                            </div>
+                                            @endif
 
                                         </div>
                                     </div>

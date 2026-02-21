@@ -42,6 +42,24 @@
                                         @php($address = $commonData['customer']->addresses()->where('address_label', 'default')?->first() ?? '')
                                         <p>{{ $address->address ?? '' }}<br class="d-none d-lg-block"/>
                                             {{ $address->city ?? '' }}</p>
+                                        @if($commonData['customer']->sex)
+                                        <div>
+                                            <span class="fw-bold">{{ translate('sex') }}: </span>
+                                            <span class="text-capitalize">{{ translate($commonData['customer']->sex) }}</span>
+                                        </div>
+                                        @endif
+                                        @if($commonData['customer']->date_of_birth)
+                                        <div>
+                                            <span class="fw-bold">{{ translate('date_of_birth') }}: </span>
+                                            <span>{{ \Carbon\Carbon::parse($commonData['customer']->date_of_birth)->format('d/m/Y') }}</span>
+                                        </div>
+                                        @endif
+                                        @if($commonData['customer']->country)
+                                        <div>
+                                            <span class="fw-bold">{{ translate('country') }}: </span>
+                                            <span>{{ $commonData['customer']->country }}</span>
+                                        </div>
+                                        @endif
                                     </div>
                                 </div>
                                 '

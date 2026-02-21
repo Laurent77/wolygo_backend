@@ -2336,6 +2336,11 @@
   'The profile image must be a file of type: jpeg  jpg  png  gif.' => 'The profile image must be a file of type: jpeg  jpg  png  gif.',
 
   // --- Driver Documents ---
+  'driver_document_validation' => 'Document Validation',
+  'driver_document_validation_list' => 'Driver Document Validation List',
+  'total_docs' => 'Total Docs',
+  'global_status' => 'Global Status',
+  'view_documents' => 'View Documents',
   'documents' => 'Documents',
   'driver_documents' => 'Driver Documents',
   'document_type' => 'Document Type',
