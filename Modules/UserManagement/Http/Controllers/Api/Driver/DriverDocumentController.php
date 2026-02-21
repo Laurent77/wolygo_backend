@@ -29,7 +29,7 @@ class DriverDocumentController extends Controller
     public function upload(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'document_type'   => 'required|in:national_id,passport,driving_license,work_permit,vehicle_registration,vehicle_insurance,technical_inspection,criminal_record',
+            'document_type'   => 'required|in:work_permit,vehicle_registration,vehicle_insurance,technical_inspection,criminal_record,formation_taxi,numero_tvq,tps,photo_odometre,certificat_assurance,certificat_immatriculation',
             'document_number' => 'nullable|string|max:100',
             'issued_at'       => 'nullable|date',
             'expires_at'      => 'nullable|date|after:today',

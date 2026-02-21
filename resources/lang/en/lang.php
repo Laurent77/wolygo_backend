@@ -2403,6 +2403,12 @@
   'vehicle_insurance' => 'Vehicle Insurance',
   'technical_inspection' => 'Technical Inspection',
   'criminal_record' => 'Criminal Record',
+  'formation_taxi' => 'Taxi Training',
+  'numero_tvq' => 'QST Number',
+  'tps' => 'GST',
+  'photo_odometre' => 'Odometer Photo',
+  'certificat_assurance' => 'Insurance Certificate',
+  'certificat_immatriculation' => 'Registration Certificate',
 
   // --- Registration fields ---
   'sex' => 'Sex',

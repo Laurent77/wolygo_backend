@@ -123,6 +123,7 @@
                                                     {{ $doc->created_at?->format('d/m/Y H:i') ?? '—' }}
                                                 </td>
                                                 <td class="text-nowrap">
+                                                    {{-- Approuver : visible si pas encore approuvé --}}
                                                     @if($doc->status !== 'approved')
                                                         <form action="{{ route('admin.driver-documents.approve', $doc->id) }}"
                                                               method="POST" class="d-inline">
@@ -133,12 +134,15 @@
                                                             </button>
                                                         </form>
                                                     @endif
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-danger mb-1"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#rejectModal{{ $doc->id }}">
-                                                        <i class="bi bi-x-circle"></i> {{ translate('reject') }}
-                                                    </button>
+                                                    {{-- Rejeter : visible uniquement si approuvé ou en attente (pas si déjà rejeté) --}}
+                                                    @if($doc->status !== 'rejected')
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-danger mb-1"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#rejectModal{{ $doc->id }}">
+                                                            <i class="bi bi-x-circle"></i> {{ translate('reject') }}
+                                                        </button>
+                                                    @endif
                                                 </td>
                                             </tr>
                                         @endforeach

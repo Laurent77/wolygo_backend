@@ -2546,6 +2546,12 @@
   'vehicle_insurance' => 'Assurance véhicule',
   'technical_inspection' => 'Contrôle technique',
   'criminal_record' => 'Casier judiciaire',
+  'formation_taxi' => 'Formation de taxi',
+  'numero_tvq' => 'Numéro TVQ',
+  'tps' => 'TPS',
+  'photo_odometre' => 'Photo de l\'odomètre',
+  'certificat_assurance' => 'Certificat d\'assurance',
+  'certificat_immatriculation' => 'Certificat d\'immatriculation',
 
   // --- Champs d\'inscription ---
   'sex' => 'Sexe',
