@@ -57,16 +57,21 @@ class PaymentController extends Controller
         }
         $feeAttributes['tips'] = $tips;
 
+        // Paiement anticipé si trip accepté et paid_fare encore à 0
+        $upfrontFare = ($trip->current_status === ACCEPTED && $trip->paid_fare == 0)
+            ? round($trip->estimated_fare * 1.12, 2)
+            : $trip->paid_fare;
+
         $data = [
-            'tips' => $tips,
+            'tips'           => $tips,
             'payment_method' => $request->payment_method,
-            'paid_fare' => $trip->paid_fare + $tips,
-            'payment_status' => PAID
+            'paid_fare'      => $upfrontFare + $tips,
+            'payment_status' => PAID,
         ];
         $trip->fee()->update($feeAttributes);
         $trip = $this->tripRequestservice->update(id: $request->trip_request_id, data: $data);
         if ($request->payment_method == 'wallet') {
-            if ($trip->customer->userAccount->wallet_balance < ($trip->paid_fare)) {
+            if ($trip->customer->userAccount->wallet_balance < ($upfrontFare + $tips)) {
 
                 return response()->json(responseFormatter(INSUFFICIENT_FUND_403), 403);
             }
@@ -147,7 +152,15 @@ class PaymentController extends Controller
 
 
         $trip = $this->tripRequestservice->update(id: $request->trip_request_id, data: $data);
-        $paymentAmount = $trip->paid_fare + $tips;
+        // Paiement anticipé si trip accepté et paid_fare encore à 0
+        $upfrontFare = ($trip->current_status === ACCEPTED && $trip->paid_fare == 0)
+            ? round($trip->estimated_fare * 1.12, 2)
+            : $trip->paid_fare;
+        // Persister paid_fare pour que le webhook callback ait la bonne valeur
+        if ($trip->paid_fare == 0 && $trip->current_status === ACCEPTED) {
+            $this->tripRequestservice->update(id: $request->trip_request_id, data: ['paid_fare' => $upfrontFare, 'column' => 'id']);
+        }
+        $paymentAmount = $upfrontFare + $tips;
         $customer = $trip->customer;
         $payer = new Payer(
             name: $customer?->first_name,
