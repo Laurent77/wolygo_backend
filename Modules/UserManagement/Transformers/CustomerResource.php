@@ -45,7 +45,8 @@ class CustomerResource extends JsonResource
             'user_rating' => round($this->received_reviews_avg_rating, 1),
             'total_ride_count' => $this->customer_trips_count,
             'completion_percent' => $this->completion_percent,
-            'coupon' => AppliedCouponResource::make($this->appliedCoupon)
+            'coupon' => AppliedCouponResource::make($this->appliedCoupon),
+            'postal_address' => $this->addresses()->where('address_label','default')->first()?->address,
         ];
 
     }

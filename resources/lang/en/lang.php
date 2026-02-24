@@ -2417,4 +2417,5 @@
   'male' => 'Male',
   'female' => 'Female',
   'today_idle_hour_rate' => 'Today Idle Hour Rate',
+  'postal_address' => 'Postal Address',
 );

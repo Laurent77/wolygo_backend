@@ -81,6 +81,12 @@ class CustomerService extends BaseService implements Interface\CustomerServiceIn
         $customer = $this->userRepository->create($customerData);
 
         $customer?->userAccount()->create();
+        if (array_key_exists('address', $data) && $data['address']) {
+            $customer?->addresses()->create([
+                'address' => $data['address'],
+                'address_label' => 'default'
+            ]);
+        }
         DB::commit();
         return $customer;
     }

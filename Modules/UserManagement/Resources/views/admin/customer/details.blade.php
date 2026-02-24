@@ -39,9 +39,13 @@
                                         </h3>
                                         <a href="tel:+0902342734">{{ $commonData['customer']->phone }}</a>
                                         <a href="mailto:lee@gmail.com">{{ $commonData['customer']->email }}</a>
-                                        @php($address = $commonData['customer']->addresses()->where('address_label', 'default')?->first() ?? '')
-                                        <p>{{ $address->address ?? '' }}<br class="d-none d-lg-block"/>
-                                            {{ $address->city ?? '' }}</p>
+                                        @php($address = $commonData['customer']->addresses()->where('address_label', 'default')?->first())
+                                        @if($address && $address->address)
+                                        <div>
+                                            <span class="fw-bold">{{ translate('postal_address') }}: </span>
+                                            <span>{{ $address->address }}{{ $address->city ? ', ' . $address->city : '' }}</span>
+                                        </div>
+                                        @endif
                                         @if($commonData['customer']->sex)
                                         <div>
                                             <span class="fw-bold">{{ translate('sex') }}: </span>

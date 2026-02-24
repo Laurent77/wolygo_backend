@@ -92,6 +92,7 @@ class AuthController extends Controller
             'sex' => 'sometimes|in:male,female,other',
             'date_of_birth' => 'sometimes|date',
             'country' => 'sometimes|string|max:100',
+            'address' => 'sometimes|string|max:500',
             'fcm_token' => 'sometimes',
             'referral_code' => 'sometimes',
             'service' => [

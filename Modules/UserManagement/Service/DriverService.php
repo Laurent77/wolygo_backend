@@ -91,6 +91,12 @@ class DriverService extends BaseService implements Interface\DriverServiceInterf
         }
         $driver?->driverDetails()->create($driverDetailsData);
         $driver?->userAccount()->create();
+        if (array_key_exists('address', $data) && $data['address']) {
+            $driver?->addresses()->create([
+                'address' => $data['address'],
+                'address_label' => 'default'
+            ]);
+        }
         DB::commit();
         return $driver;
     }

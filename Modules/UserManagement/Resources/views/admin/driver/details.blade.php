@@ -88,6 +88,13 @@
                                                 <span>{{ $commonData['driver']->country }}</span>
                                             </div>
                                             @endif
+                                            @php($driverAddress = $commonData['driver']->addresses()->where('address_label','default')->first())
+                                            @if($driverAddress && $driverAddress->address)
+                                            <div>
+                                                <span class="fw-bold">{{ translate('postal_address') }}: </span>
+                                                <span>{{ $driverAddress->address }}{{ $driverAddress->city ? ', ' . $driverAddress->city : '' }}</span>
+                                            </div>
+                                            @endif
 
                                         </div>
                                     </div>

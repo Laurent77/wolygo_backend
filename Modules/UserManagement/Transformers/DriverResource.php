@@ -62,7 +62,8 @@ class DriverResource extends JsonResource
             'total_earning' => $totalEarning,
             'total_tips' => $tips,
             'paid_amount' => $paidAmount,
-            'level_up_reward_amount' => $levelUpRewardAmount
+            'level_up_reward_amount' => $levelUpRewardAmount,
+            'postal_address' => $this->addresses()->where('address_label','default')->first()?->address,
         ];
     }
 }
