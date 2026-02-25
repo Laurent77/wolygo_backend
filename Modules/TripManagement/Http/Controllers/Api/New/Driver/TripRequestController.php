@@ -346,7 +346,7 @@ class TripRequestController extends Controller
                 fcm_token: $trip->customer->fcm_token,
                 title: 'Trip waiting for your payment',
                 description: 'The trip is waiting for your payment to start',
-                status: 'otp_matched',
+                status: '1',
                 ride_request_id: $request['trip_request_id'],
                 type: $trip['type'],
                 action: 'otp_matched',
