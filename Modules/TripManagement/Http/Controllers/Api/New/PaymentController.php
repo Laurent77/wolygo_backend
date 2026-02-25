@@ -57,8 +57,9 @@ class PaymentController extends Controller
         }
         $feeAttributes['tips'] = $tips;
 
-        // Paiement anticipé si trip accepté et paid_fare encore à 0
-        $upfrontFare = ($trip->current_status === ACCEPTED && $trip->paid_fare == 0)
+        // Paiement anticipé si trip accepté et paid_fare encore à 0 (OTP déjà validé)
+        $wasAccepted = ($trip->current_status === ACCEPTED && $trip->paid_fare == 0);
+        $upfrontFare = $wasAccepted
             ? round($trip->estimated_fare * 1.12, 2)
             : $trip->paid_fare;
 
@@ -84,6 +85,16 @@ class PaymentController extends Controller
         }
 
         $this->amountChecker($trip->customer, $trip->paid_fare);
+
+        // Le rider vient de payer après le scan OTP → démarrer la course maintenant
+        if ($wasAccepted) {
+            $this->tripRequestservice->update(id: $request->trip_request_id, data: [
+                'current_status' => ONGOING,
+                'trip_status'    => now(),
+                'column'         => 'id',
+            ]);
+        }
+
         DB::commit();
 
         // Broadcast to driver app so it can unlock the "Start" button

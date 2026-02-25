@@ -339,21 +339,7 @@ class TripRequestController extends Controller
             return response()->json(responseFormatter(OTP_MISMATCH_404), 403);
         }
 
-        // Block trip start until customer has paid upfront
-        if ($trip->payment_status !== PAID) {
-            return response()->json(responseFormatter(constant: [
-                'response_code' => 'payment_required_402',
-                'message'       => translate('Customer payment not confirmed yet. Please wait.'),
-            ]), 402);
-        }
-
-        DB::beginTransaction();
-        $attributes = [
-            'current_status' => ONGOING,
-            'trip_status' => now()
-        ];
-
-        $this->tripRequestservice->update(data: $attributes, id: $request['trip_request_id']);
+        // OTP validé — notifier le rider pour qu'il paie (le trip reste ACCEPTED jusqu'au paiement)
         if ($trip->customer->fcm_token) {
 
             $push = getNotification('trip_started');
@@ -369,7 +355,6 @@ class TripRequestController extends Controller
             );
         }
 
-        DB::commit();
         return response()->json(responseFormatter(DEFAULT_STORE_200));
     }
 
@@ -396,6 +381,23 @@ class TripRequestController extends Controller
         if ($trip->is_paused) {
 
             return response()->json(responseFormatter(TRIP_REQUEST_PAUSED_404), 403);
+        }
+
+        // Remboursement anticipé : si le driver annule un trip ACCEPTED déjà payé par wallet
+        if ($request->status === 'cancelled'
+            && $trip->payment_status === PAID
+            && $trip->current_status === ACCEPTED
+            && $trip->payment_method === 'wallet') {
+            $tripWithFee = $this->tripRequestservice->findOne(
+                id: $request['trip_request_id'],
+                relations: ['customer', 'driver', 'fee']
+            );
+            $this->senderWalletPaymentDriverParcelCancelReverseTransaction($tripWithFee);
+            $this->tripRequestservice->update(id: $request['trip_request_id'], data: [
+                'payment_status' => UNPAID,
+                'paid_fare'      => 0,
+                'column'         => 'id',
+            ]);
         }
 
         $data = $this->tripRequestservice->handleDriverStatusUpdate($request, $trip);
