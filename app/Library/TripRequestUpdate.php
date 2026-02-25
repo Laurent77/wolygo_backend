@@ -52,10 +52,12 @@ if (!function_exists('tripRequestUpdate'))
         }
         if (!empty($trip)) {
             try {
-                event(checkPusherConnection(CustomerTripPaymentSuccessfulEvent::broadcast($trip)));
                 if ($isUpfrontPayment) {
-                    // Notify driver app to transition to ONGOING state
+                    // Paiement avant course : notifier le driver pour passer à ONGOING
                     broadcast(new CustomerPaymentConfirmedEvent($trip))->toOthers();
+                } else {
+                    // Paiement après course : notifier le driver que le client a payé
+                    event(checkPusherConnection(CustomerTripPaymentSuccessfulEvent::broadcast($trip)));
                 }
             }catch(Exception $exception){
 

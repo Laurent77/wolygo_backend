@@ -2,6 +2,7 @@
 
 namespace Modules\TripManagement\Http\Controllers\Api;
 
+use App\Events\CustomerPaymentConfirmedEvent;
 use App\Events\CustomerTripPaymentSuccessfulEvent;
 use App\Events\DriverPaymentReceivedEvent;
 use Exception;
@@ -65,7 +66,16 @@ class PaymentController extends Controller
         $attributes['tips'] = $tips;
         $trip->fee()->update($feeAttributes);
         $trip = $this->trip->update($attributes, $request->trip_request_id);
-        $paymentAmount = $trip->paid_fare + $tips;
+
+        // Paiement anticipé si trip accepté et paid_fare encore à 0
+        $upfrontFare = ($trip->current_status === ACCEPTED && $trip->paid_fare == 0)
+            ? round($trip->estimated_fare * 1.12, 2)
+            : $trip->paid_fare;
+        // Persister paid_fare pour que le webhook (TripRequestUpdate) ait la bonne valeur
+        if ($trip->paid_fare == 0 && $trip->current_status === ACCEPTED) {
+            $this->trip->update(['column' => 'id', 'paid_fare' => $upfrontFare], $request->trip_request_id);
+        }
+        $paymentAmount = $upfrontFare + $tips;
         $customer = $trip->customer;
         $payer = new Payer(
             name: $customer?->first_name,
@@ -125,11 +135,18 @@ class PaymentController extends Controller
         if (!is_null($request->tips) && $request->payment_method == 'wallet') {
             $tips = $request->tips;
         }
+
+        // Paiement anticipé si trip accepté et paid_fare encore à 0 (OTP déjà validé)
+        $wasAccepted = ($trip->current_status === ACCEPTED && $trip->paid_fare == 0);
+        $upfrontFare = $wasAccepted
+            ? round($trip->estimated_fare * 1.12, 2)
+            : $trip->paid_fare;
+
         $attributes = [
             'column' => 'id',
             'tips' => $tips,
             'payment_method' => $request->payment_method,
-            'paid_fare' => $trip->paid_fare + $tips,
+            'paid_fare' => $upfrontFare + $tips,
             'payment_status' => PAID
         ];
         $feeAttributes['tips'] = $tips;
@@ -138,7 +155,7 @@ class PaymentController extends Controller
         $trip->tips = 0;
         $trip->save();
         if ($request->payment_method == 'wallet') {
-            if ($trip->customer->userAccount->wallet_balance < ($trip->paid_fare)) {
+            if ($trip->customer->userAccount->wallet_balance < ($upfrontFare + $tips)) {
 
                 return response()->json(responseFormatter(INSUFFICIENT_FUND_403), 403);
             }
@@ -148,6 +165,11 @@ class PaymentController extends Controller
         elseif ($request->payment_method == 'cash') {
             $method = '_by_cash';
             $this->cashTransaction($trip);
+        }
+
+        // Démarrer la course maintenant que le paiement est confirmé
+        if ($wasAccepted) {
+            $this->trip->update(['column' => 'id', 'current_status' => ONGOING, 'trip_status' => now()], $request->trip_request_id);
         }
 
         $this->customerLevelUpdateChecker($trip->customer);
@@ -164,15 +186,20 @@ class PaymentController extends Controller
             action: 'payment_successful',
             user_id: $trip->driver->id
         );
-        try {
-            checkPusherConnection(DriverPaymentReceivedEvent::broadcast($trip));
-        }catch(Exception $exception){
 
-        }
-        try {
-            checkPusherConnection(CustomerTripPaymentSuccessfulEvent::broadcast($trip));
-        }catch(Exception $exception){
-
+        if ($wasAccepted) {
+            // Paiement avant course : notifier le driver pour passer à ONGOING
+            try {
+                broadcast(new CustomerPaymentConfirmedEvent($trip))->toOthers();
+            } catch(Exception $exception) {}
+        } else {
+            // Paiement après course : comportement original
+            try {
+                checkPusherConnection(DriverPaymentReceivedEvent::broadcast($trip));
+            }catch(Exception $exception){}
+            try {
+                checkPusherConnection(CustomerTripPaymentSuccessfulEvent::broadcast($trip));
+            }catch(Exception $exception){}
         }
 
         return response()->json(responseFormatter(DEFAULT_UPDATE_200));
