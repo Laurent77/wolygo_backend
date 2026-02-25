@@ -1,6 +1,7 @@
 <?php
 
 
+use App\Events\CustomerPaymentConfirmedEvent;
 use App\Events\CustomerTripPaymentSuccessfulEvent;
 use Modules\TripManagement\Entities\TripRequest;
 use Modules\TransactionManagement\Traits\TransactionTrait;
@@ -13,8 +14,16 @@ if (!function_exists('tripRequestUpdate'))
         $trip = TripRequest::query()
             ->with(['driver', 'customer'])
             ->find($data->attribute_id);
-        $trip->paid_fare = ($trip->paid_fare +$trip->tips);
+
+        // Detect upfront payment (trip is still ACCEPTED, not COMPLETED)
+        $isUpfrontPayment = ($trip->current_status === ACCEPTED);
+
+        $trip->paid_fare = ($trip->paid_fare + $trip->tips);
         $trip->payment_status = PAID;
+        if ($isUpfrontPayment) {
+            $trip->current_status = ONGOING;
+            $trip->trip_status = now();
+        }
         $trip->save();
         $push = getNotification('payment_successful');
         sendDeviceNotification(
@@ -44,6 +53,10 @@ if (!function_exists('tripRequestUpdate'))
         if (!empty($trip)) {
             try {
                 event(checkPusherConnection(CustomerTripPaymentSuccessfulEvent::broadcast($trip)));
+                if ($isUpfrontPayment) {
+                    // Notify driver app to transition to ONGOING state
+                    broadcast(new CustomerPaymentConfirmedEvent($trip))->toOthers();
+                }
             }catch(Exception $exception){
 
             }

@@ -15,6 +15,7 @@ use Modules\FareManagement\Service\Interface\ParcelFareServiceInterface;
 use Modules\FareManagement\Service\Interface\ParcelFareWeightServiceInterface;
 use Modules\FareManagement\Service\Interface\TripFareServiceInterface;
 use Modules\Gateways\Traits\Payment;
+use App\Jobs\CancelUnpaidTripJob;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -341,19 +342,20 @@ class TripRequestController extends Controller
 
         // OTP validé — notifier le rider pour qu'il paie (le trip reste ACCEPTED jusqu'au paiement)
         if ($trip->customer->fcm_token) {
-
-            $push = getNotification('trip_started');
             sendDeviceNotification(
                 fcm_token: $trip->customer->fcm_token,
-                title: translate($push['title']),
-                description: translate(textVariableDataFormat(value: $push['description'])),
-                status: $push['status'],
+                title: 'Trip waiting for your payment',
+                description: 'The trip is waiting for your payment to start',
+                status: 'otp_matched',
                 ride_request_id: $request['trip_request_id'],
                 type: $trip['type'],
                 action: 'otp_matched',
                 user_id: $trip->customer->id
             );
         }
+
+        // Délai de paiement : annuler automatiquement si le rider ne paie pas dans 5 minutes
+        CancelUnpaidTripJob::dispatch($trip->id)->delay(now()->addMinutes(5));
 
         return response()->json(responseFormatter(DEFAULT_STORE_200));
     }
