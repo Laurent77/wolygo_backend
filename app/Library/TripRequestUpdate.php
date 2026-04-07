@@ -15,12 +15,13 @@ if (!function_exists('tripRequestUpdate'))
             ->with(['driver', 'customer'])
             ->find($data->attribute_id);
 
-        // Detect upfront payment (trip is still ACCEPTED, not COMPLETED)
-        $isUpfrontPayment = ($trip->current_status === ACCEPTED);
+        // Detect upfront payment : ACCEPTED ou ONGOING (l'ancien matchOtp passe ONGOING avant paiement)
+        $isUpfrontPayment = in_array($trip->current_status, [ACCEPTED, ONGOING]);
 
         $trip->paid_fare = ($trip->paid_fare + $trip->tips);
         $trip->payment_status = PAID;
-        if ($isUpfrontPayment) {
+        if ($isUpfrontPayment && $trip->current_status === ACCEPTED) {
+            // Seulement si encore ACCEPTED (l'ancien matchOtp l'a peut-être déjà mis à ONGOING)
             $trip->current_status = ONGOING;
             $trip->trip_status = now();
         }

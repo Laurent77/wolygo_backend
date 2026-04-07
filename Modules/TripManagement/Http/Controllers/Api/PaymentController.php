@@ -67,12 +67,14 @@ class PaymentController extends Controller
         $trip->fee()->update($feeAttributes);
         $trip = $this->trip->update($attributes, $request->trip_request_id);
 
-        // Paiement anticipé si trip accepté et paid_fare encore à 0
-        $upfrontFare = ($trip->current_status === ACCEPTED && $trip->paid_fare == 0)
+        // Upfront si paid_fare == 0 : indépendant du current_status
+        // (l'ancien matchOtp passe déjà ONGOING avant paiement)
+        $isUpfront = ($trip->paid_fare == 0);
+        $upfrontFare = $isUpfront
             ? round($trip->estimated_fare * 1.12, 2)
             : $trip->paid_fare;
         // Persister paid_fare pour que le webhook (TripRequestUpdate) ait la bonne valeur
-        if ($trip->paid_fare == 0 && $trip->current_status === ACCEPTED) {
+        if ($isUpfront) {
             $this->trip->update(['column' => 'id', 'paid_fare' => $upfrontFare], $request->trip_request_id);
         }
         $paymentAmount = $upfrontFare + $tips;
@@ -136,8 +138,9 @@ class PaymentController extends Controller
             $tips = $request->tips;
         }
 
-        // Paiement anticipé si trip accepté et paid_fare encore à 0 (OTP déjà validé)
-        $wasAccepted = ($trip->current_status === ACCEPTED && $trip->paid_fare == 0);
+        // Upfront si paid_fare == 0 : indépendant du current_status
+        // (l'ancien matchOtp passe déjà ONGOING avant paiement)
+        $wasAccepted = ($trip->paid_fare == 0 && in_array($trip->current_status, [ACCEPTED, ONGOING]));
         $upfrontFare = $wasAccepted
             ? round($trip->estimated_fare * 1.12, 2)
             : $trip->paid_fare;
@@ -168,7 +171,8 @@ class PaymentController extends Controller
         }
 
         // Démarrer la course maintenant que le paiement est confirmé
-        if ($wasAccepted) {
+        // Seulement si encore ACCEPTED (l'ancien matchOtp l'a peut-être déjà mis à ONGOING)
+        if ($wasAccepted && $trip->current_status === ACCEPTED) {
             $this->trip->update(['column' => 'id', 'current_status' => ONGOING, 'trip_status' => now()], $request->trip_request_id);
         }
 
