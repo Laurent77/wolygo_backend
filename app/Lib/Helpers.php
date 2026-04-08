@@ -40,10 +40,10 @@ if (!function_exists('translate')) {
                 file_put_contents(base_path('resources/lang/' . $local . '/lang.php'), $str);
                 $result = $processedKey;
             } else {
-                $result = trans('lang.' . $key);
+                $result = $langArray[$key];
             }
         } catch (\Exception $exception) {
-            $result = trans('lang.' . $key);
+            $result = ucfirst(str_replace('_', ' ', $key));
         }
         return $result;
     }
